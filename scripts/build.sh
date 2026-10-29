@@ -39,6 +39,7 @@ cat > "$APP/Contents/Info.plist" <<EOF
   <key>LSMinimumSystemVersion</key><string>$MIN_MACOS</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
   <key>LSUIElement</key><true/>
+  <key>NSAppleEventsUsageDescription</key><string>Strokey uses this to tell your browser to go back or forward, which web pages can't block. / Strokey 用它让浏览器执行后退、前进，网页无法拦截。</string>
   <key>NSHumanReadableCopyright</key><string>MIT License · github.com/JiaCheng310/Strokey</string>
 </dict>
 </plist>

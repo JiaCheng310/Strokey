@@ -148,7 +148,7 @@ Each action can use one or more of:
 | Built-in action | Description |
 |---|---|
 | `missionControl` / `appExpose` / `showDesktop` / `launchpad` | Mission Control / App windows / Show desktop / Launchpad |
-| `back` / `forward` | Back / Forward. In browsers it simulates the mouse side buttons (works even when a page captures ⌘[); elsewhere it sends ⌘[ / ⌘] |
+| `back` / `forward` | Back / Forward. Chrome, Edge, Brave, Vivaldi: the browser's own back command, which pages can't block (asks once for permission to control the browser). Arc, Firefox: side-button click. Other apps: ⌘[ / ⌘] |
 | `scrollTop` / `scrollBottom` | Scroll the area under the pointer to the top / bottom (works regardless of keyboard focus) |
 | `spaceLeft` / `spaceRight` | Switch to the desktop on the left / right (shows a hint at the edge) |
 | `windowLeft` / `windowRight` / `windowMaximize` / `windowCenter` / `windowMinimize` | Tile left / Tile right / Maximize / Center / Minimize |
@@ -163,6 +163,7 @@ Each action can use one or more of:
 Strokey intercepts mouse events, so here is exactly what it does:
 
 - **Mouse only.** It listens to mouse buttons, drags and scroll wheel events. It does **not** listen to your keyboard. It only *sends* keystrokes when a gesture you configured asks for one.
+- **Browser control (optional).** In Chrome, Edge, Brave and Vivaldi, back / forward asks once for permission to control the browser. Strokey only sends "go back" / "go forward" to the active tab. It never reads pages, URLs or history. If you decline, it falls back to a side-button click.
 - **No network.** Strokey never connects to the internet. "Check for Updates" just opens the Releases page in your browser.
 - **No data collection.** Nothing is recorded, stored or uploaded. The only file it writes is your config file.
 - **Local logs only.** For troubleshooting, the name of each triggered action goes to the macOS system log on your Mac.
