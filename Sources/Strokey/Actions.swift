@@ -104,25 +104,49 @@ private func openSystemApp(_ name: String) {
 
 // MARK: - 后退 / 前进
 
-/// 这些 App 原生支持鼠标侧键前进 / 后退。对它们模拟侧键最可靠：
-/// 发 ⌘[ / ⌘] 时，浏览器有时不认（受键盘焦点、输入法等影响），侧键则和按物理侧键完全一样
-private let sideButtonNavigationApps: Set<String> = [
+/// 网页可以拦截后退：CodeMirror 等编辑器会吞掉 ⌘[，PDF 阅读器等会取消侧键后退（Chromium 允许网页这么做）。
+/// 只有浏览器自己的"后退"命令（和点工具栏后退按钮一样）网页拦不住，Chromium 系浏览器可以通过 AppleScript 调用。
+/// 首次使用时系统会询问是否允许 Strokey 控制该浏览器。
+private let appleScriptNavigationApps: Set<String> = [
     "com.google.Chrome", "com.google.Chrome.beta", "com.google.Chrome.dev", "com.google.Chrome.canary",
-    "org.chromium.Chromium", "com.microsoft.edgemac", "company.thebrowser.Browser",
-    "com.brave.Browser", "com.vivaldi.Vivaldi", "com.operasoftware.Opera",
+    "org.chromium.Chromium", "com.microsoft.edgemac", "com.microsoft.edgemac.Beta", "com.microsoft.edgemac.Dev",
+    "com.brave.Browser", "com.vivaldi.Vivaldi",
+]
+
+/// 原生支持鼠标侧键前进 / 后退、但没有 AppleScript 后退命令的 App
+private let sideButtonNavigationApps: Set<String> = [
+    "company.thebrowser.Browser", "com.operasoftware.Opera",
     "org.mozilla.firefox", "org.mozilla.firefoxdeveloperedition", "app.zen-browser.zen",
     "com.microsoft.VSCode", "com.todesktop.230313mzl4w4u92", // Cursor
 ]
 
-/// 其他 App（Safari、Finder 等）不认侧键，用 ⌘[ / ⌘]
+/// 其他 App（Safari、Finder 等）用 ⌘[ / ⌘]
 private func navigate(forward: Bool) {
     let app = DispatchQueue.main.sync { NSWorkspace.shared.frontmostApplication?.bundleIdentifier } ?? ""
-    if sideButtonNavigationApps.contains(app) {
-        let location = CGEvent(source: nil)?.location ?? .zero
-        postClick(button: forward ? 4 : 3, at: location)
+    if appleScriptNavigationApps.contains(app) {
+        let command = forward ? "go forward" : "go back"
+        if runAppleScript("tell application id \"\(app)\" to \(command) (active tab of front window)") { return }
+        logger.notice("AppleScript 后退失败（可能未允许控制 \(app, privacy: .public)），改用侧键")
+    }
+    if appleScriptNavigationApps.contains(app) || sideButtonNavigationApps.contains(app) {
+        postClick(button: forward ? 4 : 3, at: CGEvent(source: nil)?.location ?? .zero)
     } else {
         sendKeyCombo(forward ? "cmd+]" : "cmd+[")
     }
+}
+
+/// 用 osascript 在独立进程里执行，目标 App 卡住时最多等 2 秒，不影响 Strokey 本身。返回是否成功
+private func runAppleScript(_ source: String) -> Bool {
+    let p = Process()
+    p.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+    p.arguments = ["-e", source]
+    p.standardOutput = FileHandle.nullDevice
+    p.standardError = FileHandle.nullDevice
+    do { try p.run() } catch { return false }
+    let deadline = Date().addingTimeInterval(2)
+    while p.isRunning && Date() < deadline { usleep(10_000) }
+    if p.isRunning { p.terminate(); return false }
+    return p.terminationStatus == 0
 }
 
 /// 在指定位置发一次完整的点击（按下 + 松开）。b：1 右键，2 中键，3 / 4 侧键

@@ -1,8 +1,9 @@
 # Changelog
 
-## 1.0.2
+## 1.0.3
 
-- Back / forward now work in browsers even when the page captures ⌘[ (e.g. alphaXiv, sites with code editors). Browsers get a simulated mouse side-button click; other apps still get ⌘[ / ⌘] / 后退、前进在浏览器里改为模拟鼠标侧键，网页拦截 ⌘[ 时（如 alphaXiv、带代码编辑器的网站）也能用；其他 App 仍发送 ⌘[ / ⌘]
+- Back / forward can no longer be blocked by web pages. Pages can swallow ⌘[ (code editors such as CodeMirror on alphaXiv) and even cancel the mouse side buttons (PDF viewers). In Chrome, Edge, Brave, Vivaldi and Chromium, Strokey now uses the browser's own back command via AppleScript, same as clicking the toolbar button. macOS asks once for permission to control the browser / 后退、前进不会再被网页拦截。网页能吞掉 ⌘[（如 alphaXiv 上的 CodeMirror 编辑器），甚至取消鼠标侧键（PDF 阅读器）。现在 Chrome、Edge、Brave、Vivaldi、Chromium 通过 AppleScript 调用浏览器自己的后退命令，和点工具栏按钮一样；首次使用时系统会询问是否允许控制浏览器
+- Arc, Firefox, VS Code, Cursor: simulated side-button click. Other apps (Safari, Finder…): ⌘[ / ⌘] / Arc、Firefox、VS Code、Cursor 模拟侧键；其他 App（Safari、Finder 等）发送 ⌘[ / ⌘]
 - New built-in actions `back` / `forward` / 新增内置动作 `back` / `forward`
 - Logs now include the frontmost app / 日志里记录当时的前台 App
 

@@ -148,7 +148,7 @@ Strokey 需要辅助功能权限才能接收鼠标事件、发送快捷键。首
 | 内置动作 | 说明 |
 |---|---|
 | `missionControl` / `appExpose` / `showDesktop` / `launchpad` | 调度中心 / 当前 App 的所有窗口 / 显示桌面 / 启动台 |
-| `back` / `forward` | 后退 / 前进。在浏览器里模拟鼠标侧键（网页拦截 ⌘[ 时也能用），其他 App 发送 ⌘[ / ⌘] |
+| `back` / `forward` | 后退 / 前进。Chrome、Edge、Brave、Vivaldi 调用浏览器自己的后退命令，网页拦不住（首次会询问是否允许控制浏览器）；Arc、Firefox 模拟侧键；其他 App 发送 ⌘[ / ⌘] |
 | `scrollTop` / `scrollBottom` | 把鼠标所在区域滚到顶部 / 底部（不受键盘焦点影响） |
 | `spaceLeft` / `spaceRight` | 切换到左边 / 右边的桌面（到头时会提示） |
 | `windowLeft` / `windowRight` / `windowMaximize` / `windowCenter` / `windowMinimize` | 窗口左半屏 / 右半屏 / 最大化 / 居中 / 最小化 |
@@ -163,6 +163,7 @@ Strokey 需要辅助功能权限才能接收鼠标事件、发送快捷键。首
 Strokey 会拦截鼠标事件，下面说清楚它具体做了什么：
 
 - **只监听鼠标**：只监听鼠标按键、拖动和滚轮事件，**不监听键盘**。只有在你配置的手势需要时，才会**发送**按键。
+- **控制浏览器（可选）**：在 Chrome、Edge、Brave、Vivaldi 里后退 / 前进时，首次会询问是否允许控制浏览器。Strokey 只对当前标签页发送"后退 / 前进"，不读取网页内容、网址或历史记录。如果不允许，会改用模拟侧键。
 - **不联网**：Strokey 从不连接网络。「检查更新」只是在浏览器里打开 Releases 页面。
 - **不收集数据**：不记录、不存储、不上传任何内容。唯一会写的文件是你的配置文件。
 - **日志只在本机**：为了方便排查问题，每次触发的动作名称会写进本机的 macOS 系统日志。
