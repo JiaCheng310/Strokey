@@ -148,7 +148,7 @@ Strokey 需要辅助功能权限才能接收鼠标事件、发送快捷键。首
 | 内置动作 | 说明 |
 |---|---|
 | `missionControl` / `appExpose` / `showDesktop` / `launchpad` | 调度中心 / 当前 App 的所有窗口 / 显示桌面 / 启动台 |
-| `back` / `forward` | 后退 / 前进。Chrome、Edge、Brave、Vivaldi 调用浏览器自己的后退命令，网页拦不住（首次会询问是否允许控制浏览器）；Arc、Firefox 模拟侧键；其他 App 发送 ⌘[ / ⌘] |
+| `back` / `forward` | 后退 / 前进，由 App 自己执行，网页拦不住。Chrome、Edge、Brave、Vivaldi 调用浏览器的后退命令（首次会询问是否允许控制浏览器）；Safari、Firefox、Arc、Zen、Orion、Finder 等点击它们自己的「后退 / 前进」菜单项；代码编辑器模拟侧键；都不行时发送 ⌘[ / ⌘] |
 | `scrollTop` / `scrollBottom` | 把鼠标所在区域滚到顶部 / 底部（不受键盘焦点影响） |
 | `spaceLeft` / `spaceRight` | 切换到左边 / 右边的桌面（到头时会提示） |
 | `windowLeft` / `windowRight` / `windowMaximize` / `windowCenter` / `windowMinimize` | 窗口左半屏 / 右半屏 / 最大化 / 居中 / 最小化 |

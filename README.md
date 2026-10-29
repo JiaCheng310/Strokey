@@ -148,7 +148,7 @@ Each action can use one or more of:
 | Built-in action | Description |
 |---|---|
 | `missionControl` / `appExpose` / `showDesktop` / `launchpad` | Mission Control / App windows / Show desktop / Launchpad |
-| `back` / `forward` | Back / Forward. Chrome, Edge, Brave, Vivaldi: the browser's own back command, which pages can't block (asks once for permission to control the browser). Arc, Firefox: side-button click. Other apps: ⌘[ / ⌘] |
+| `back` / `forward` | Back / Forward, done by the app itself so web pages can't block it. Chrome, Edge, Brave, Vivaldi: the browser's back command (asks once for permission to control the browser). Safari, Firefox, Arc, Zen, Orion, Finder and others: presses the app's own Back / Forward menu item. Code editors: side-button click. Falls back to ⌘[ / ⌘] |
 | `scrollTop` / `scrollBottom` | Scroll the area under the pointer to the top / bottom (works regardless of keyboard focus) |
 | `spaceLeft` / `spaceRight` | Switch to the desktop on the left / right (shows a hint at the edge) |
 | `windowLeft` / `windowRight` / `windowMaximize` / `windowCenter` / `windowMinimize` | Tile left / Tile right / Maximize / Center / Minimize |
