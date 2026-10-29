@@ -84,8 +84,8 @@ struct Config: Codable {
     static var defaults: Config {
         var c = Config()
         c.global = [
-            "L":  Action(name: L("后退", "Back"), key: "cmd+["),
-            "R":  Action(name: L("前进", "Forward"), key: "cmd+]"),
+            "L":  Action(name: L("后退", "Back"), action: "back"),
+            "R":  Action(name: L("前进", "Forward"), action: "forward"),
             "U":  Action(name: L("回到顶部", "Scroll to top"), action: "scrollTop"),
             "D":  Action(name: L("到底部", "Scroll to bottom"), action: "scrollBottom"),
             "DR": Action(name: L("关闭标签页", "Close tab"), key: "cmd+w"),
@@ -106,15 +106,15 @@ struct Config: Codable {
                 "L": Action(name: L("左边的桌面", "Desktop on the left"), action: "spaceLeft"),
                 "R": Action(name: L("右边的桌面", "Desktop on the right"), action: "spaceRight"),
             ]),
-            "3": ButtonConfig(click: Action(name: L("后退", "Back"), key: "cmd+[")),
-            "4": ButtonConfig(click: Action(name: L("前进", "Forward"), key: "cmd+]")),
+            "3": ButtonConfig(click: Action(name: L("后退", "Back"), action: "back")),
+            "4": ButtonConfig(click: Action(name: L("前进", "Forward"), action: "forward")),
         ]
         c.wheelGesture = WheelGesture(
             up: Action(name: L("上一个标签页", "Previous tab"), key: "ctrl+shift+tab"),
             down: Action(name: L("下一个标签页", "Next tab"), key: "ctrl+tab"))
         c.rocker = Rocker(
-            rightThenLeft: Action(name: L("后退", "Back"), key: "cmd+["),
-            leftThenRight: Action(name: L("前进", "Forward"), key: "cmd+]"))
+            rightThenLeft: Action(name: L("后退", "Back"), action: "back"),
+            leftThenRight: Action(name: L("前进", "Forward"), action: "forward"))
         return c
     }
 }
