@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/demo.gif" width="720" alt="Strokey demo: drawing mouse gestures to go back, forward and switch tabs">
+  <img src="assets/demo.gif" width="800" alt="Strokey demo: drawing mouse gestures to go back, forward and switch tabs">
 </p>
 
 <p align="center">

@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/demo.gif" width="720" alt="Strokey 演示：画鼠标手势后退、前进、切换标签页">
+  <img src="assets/demo.gif" width="800" alt="Strokey 演示：画鼠标手势后退、前进、切换标签页">
 </p>
 
 <p align="center">
