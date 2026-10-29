@@ -37,6 +37,9 @@ func performBuiltin(_ name: String) {
         } else {
             openSystemApp("Apps")
         }
+    case "scrollTop":      scrollToEdge(top: true)
+    case "scrollBottom":   scrollToEdge(top: false)
+
     case "spaceLeft":      switchSpace(right: false)
     case "spaceRight":     switchSpace(right: true)
 
@@ -92,6 +95,22 @@ private func openSystemApp(_ name: String) {
     let url = URL(fileURLWithPath: "/System/Applications/\(name).app")
     NSWorkspace.shared.openApplication(at: url, configuration: .init()) { _, error in
         if let error { logger.error("打开 \(name, privacy: .public) 失败: \(error.localizedDescription, privacy: .public)") }
+    }
+}
+
+// MARK: - 滚动到顶部 / 底部
+
+/// 在鼠标所在位置连续发送大距离滚动。滚动事件发给鼠标下面的区域，
+/// 不依赖键盘焦点：⌘↑ / ⌘↓ 在焦点位于输入框、或页面滚动区域是嵌套元素时（很多网页类 App）不起作用
+private func scrollToEdge(top: Bool) {
+    let step: Int32 = top ? 30_000 : -30_000
+    for _ in 0..<20 {
+        guard let ev = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1, wheel1: step, wheel2: 0, wheel3: 0) else { return }
+        if let loc = CGEvent(source: nil)?.location { ev.location = loc }
+        ev.setIntegerValueField(.scrollWheelEventIsContinuous, value: 1)
+        ev.setIntegerValueField(.eventSourceUserData, value: kSelfMarker)
+        ev.post(tap: .cghidEventTap)
+        usleep(4_000)
     }
 }
 

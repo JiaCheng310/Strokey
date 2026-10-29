@@ -86,8 +86,8 @@ struct Config: Codable {
         c.global = [
             "L":  Action(name: L("后退", "Back"), key: "cmd+["),
             "R":  Action(name: L("前进", "Forward"), key: "cmd+]"),
-            "U":  Action(name: L("回到顶部", "Scroll to top"), key: "cmd+up"),
-            "D":  Action(name: L("到底部", "Scroll to bottom"), key: "cmd+down"),
+            "U":  Action(name: L("回到顶部", "Scroll to top"), action: "scrollTop"),
+            "D":  Action(name: L("到底部", "Scroll to bottom"), action: "scrollBottom"),
             "DR": Action(name: L("关闭标签页", "Close tab"), key: "cmd+w"),
             "DL": Action(name: L("恢复关闭的标签页", "Reopen closed tab"), key: "cmd+shift+t"),
             "UD": Action(name: L("刷新", "Reload"), key: "cmd+r"),

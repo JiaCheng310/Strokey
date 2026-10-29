@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+
+- Scroll-to-top / bottom gestures (↑ / ↓) now scroll the area under the pointer instead of sending ⌘↑ / ⌘↓, so they also work in web-based apps and while a text field has focus / 「回到顶部 / 到底部」改为滚动鼠标所在区域，不再发送 ⌘↑ / ⌘↓，在网页类 App 和输入框有焦点时也能用
+- New built-in actions `scrollTop` / `scrollBottom` / 新增内置动作 `scrollTop` / `scrollBottom`
+
 ## 1.0.0
 
 First public release. / 首个公开版本。

@@ -148,6 +148,7 @@ Each action can use one or more of:
 | Built-in action | Description |
 |---|---|
 | `missionControl` / `appExpose` / `showDesktop` / `launchpad` | Mission Control / App windows / Show desktop / Launchpad |
+| `scrollTop` / `scrollBottom` | Scroll the area under the pointer to the top / bottom (works regardless of keyboard focus) |
 | `spaceLeft` / `spaceRight` | Switch to the desktop on the left / right (shows a hint at the edge) |
 | `windowLeft` / `windowRight` / `windowMaximize` / `windowCenter` / `windowMinimize` | Tile left / Tile right / Maximize / Center / Minimize |
 | `volumeUp` / `volumeDown` / `mute` | Volume |

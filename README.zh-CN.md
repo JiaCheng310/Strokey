@@ -148,6 +148,7 @@ Strokey 需要辅助功能权限才能接收鼠标事件、发送快捷键。首
 | 内置动作 | 说明 |
 |---|---|
 | `missionControl` / `appExpose` / `showDesktop` / `launchpad` | 调度中心 / 当前 App 的所有窗口 / 显示桌面 / 启动台 |
+| `scrollTop` / `scrollBottom` | 把鼠标所在区域滚到顶部 / 底部（不受键盘焦点影响） |
 | `spaceLeft` / `spaceRight` | 切换到左边 / 右边的桌面（到头时会提示） |
 | `windowLeft` / `windowRight` / `windowMaximize` / `windowCenter` / `windowMinimize` | 窗口左半屏 / 右半屏 / 最大化 / 居中 / 最小化 |
 | `volumeUp` / `volumeDown` / `mute` | 音量 |
