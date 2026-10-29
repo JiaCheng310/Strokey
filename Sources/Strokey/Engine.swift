@@ -232,14 +232,6 @@ final class GestureEngine {
 
     /// 没画出手势：把被吞掉的点击原样补发，保证右键菜单、中键点击正常
     private func replayClick(_ b: Int, at p: CGPoint) {
-        let types: [CGEventType] = b == 1 ? [.rightMouseDown, .rightMouseUp] : [.otherMouseDown, .otherMouseUp]
-        let mb = CGMouseButton(rawValue: UInt32(b)) ?? .center
-        let src = CGEventSource(stateID: .hidSystemState)
-        for t in types {
-            guard let ev = CGEvent(mouseEventSource: src, mouseType: t, mouseCursorPosition: p, mouseButton: mb) else { continue }
-            ev.setIntegerValueField(.mouseEventButtonNumber, value: Int64(b))
-            ev.setIntegerValueField(.eventSourceUserData, value: kSelfMarker)
-            ev.post(tap: .cghidEventTap)
-        }
+        postClick(button: b, at: p)
     }
 }

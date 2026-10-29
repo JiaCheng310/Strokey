@@ -15,8 +15,9 @@ let logger = Logger(subsystem: "io.github.jiacheng310.strokey", category: "main"
 private let actionQueue = DispatchQueue(label: "io.github.jiacheng310.strokey.actions", qos: .userInteractive)
 
 func perform(_ a: Action) {
+    let app = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "?"
     actionQueue.async {
-        logger.info("执行动作: \(a.label, privacy: .public)")
+        logger.info("执行动作: \(a.label, privacy: .public)（前台 App: \(app, privacy: .public)）")
         if let k = a.key { sendKeyCombo(k) }
         if let s = a.shell { runShell(s) }
         if let b = a.action { performBuiltin(b) }
@@ -37,6 +38,9 @@ func performBuiltin(_ name: String) {
         } else {
             openSystemApp("Apps")
         }
+    case "back":           navigate(forward: false)
+    case "forward":        navigate(forward: true)
+
     case "scrollTop":      scrollToEdge(top: true)
     case "scrollBottom":   scrollToEdge(top: false)
 
@@ -95,6 +99,42 @@ private func openSystemApp(_ name: String) {
     let url = URL(fileURLWithPath: "/System/Applications/\(name).app")
     NSWorkspace.shared.openApplication(at: url, configuration: .init()) { _, error in
         if let error { logger.error("打开 \(name, privacy: .public) 失败: \(error.localizedDescription, privacy: .public)") }
+    }
+}
+
+// MARK: - 后退 / 前进
+
+/// 这些 App 原生支持鼠标侧键前进 / 后退。对它们模拟侧键最可靠：
+/// 发 ⌘[ / ⌘] 时，浏览器有时不认（受键盘焦点、输入法等影响），侧键则和按物理侧键完全一样
+private let sideButtonNavigationApps: Set<String> = [
+    "com.google.Chrome", "com.google.Chrome.beta", "com.google.Chrome.dev", "com.google.Chrome.canary",
+    "org.chromium.Chromium", "com.microsoft.edgemac", "company.thebrowser.Browser",
+    "com.brave.Browser", "com.vivaldi.Vivaldi", "com.operasoftware.Opera",
+    "org.mozilla.firefox", "org.mozilla.firefoxdeveloperedition", "app.zen-browser.zen",
+    "com.microsoft.VSCode", "com.todesktop.230313mzl4w4u92", // Cursor
+]
+
+/// 其他 App（Safari、Finder 等）不认侧键，用 ⌘[ / ⌘]
+private func navigate(forward: Bool) {
+    let app = DispatchQueue.main.sync { NSWorkspace.shared.frontmostApplication?.bundleIdentifier } ?? ""
+    if sideButtonNavigationApps.contains(app) {
+        let location = CGEvent(source: nil)?.location ?? .zero
+        postClick(button: forward ? 4 : 3, at: location)
+    } else {
+        sendKeyCombo(forward ? "cmd+]" : "cmd+[")
+    }
+}
+
+/// 在指定位置发一次完整的点击（按下 + 松开）。b：1 右键，2 中键，3 / 4 侧键
+func postClick(button b: Int, at p: CGPoint) {
+    let types: [CGEventType] = b == 1 ? [.rightMouseDown, .rightMouseUp] : [.otherMouseDown, .otherMouseUp]
+    let mb = CGMouseButton(rawValue: UInt32(b)) ?? .center
+    let src = CGEventSource(stateID: .hidSystemState)
+    for t in types {
+        guard let ev = CGEvent(mouseEventSource: src, mouseType: t, mouseCursorPosition: p, mouseButton: mb) else { continue }
+        ev.setIntegerValueField(.mouseEventButtonNumber, value: Int64(b))
+        ev.setIntegerValueField(.eventSourceUserData, value: kSelfMarker)
+        ev.post(tap: .cghidEventTap)
     }
 }
 
