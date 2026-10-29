@@ -105,34 +105,116 @@ private func openSystemApp(_ name: String) {
 // MARK: - 后退 / 前进
 
 /// 网页可以拦截后退：CodeMirror 等编辑器会吞掉 ⌘[，PDF 阅读器等会取消侧键后退（Chromium 允许网页这么做）。
-/// 只有浏览器自己的"后退"命令（和点工具栏后退按钮一样）网页拦不住，Chromium 系浏览器可以通过 AppleScript 调用。
-/// 首次使用时系统会询问是否允许 Strokey 控制该浏览器。
+/// 所以优先让浏览器自己执行后退（和点工具栏后退按钮一样），网页拦不住：
+/// 1. Chromium 系浏览器：AppleScript 的 go back 命令（首次会询问是否允许控制该浏览器）
+/// 2. 其他 App：点菜单栏里快捷键为 ⌘[ 的菜单项（Safari「历史记录 → 后退」、Firefox、Arc、Finder 等）
+/// 3. 都不行时：浏览器模拟侧键，其他 App 发送 ⌘[ / ⌘]
+
+/// 支持 Chrome AppleScript 套件（go back / go forward）的浏览器
 private let appleScriptNavigationApps: Set<String> = [
     "com.google.Chrome", "com.google.Chrome.beta", "com.google.Chrome.dev", "com.google.Chrome.canary",
-    "org.chromium.Chromium", "com.microsoft.edgemac", "com.microsoft.edgemac.Beta", "com.microsoft.edgemac.Dev",
-    "com.brave.Browser", "com.vivaldi.Vivaldi",
+    "com.google.chrome.for.testing", "org.chromium.Chromium",
+    "com.microsoft.edgemac", "com.microsoft.edgemac.Beta", "com.microsoft.edgemac.Dev", "com.microsoft.edgemac.Canary",
+    "com.brave.Browser", "com.brave.Browser.beta", "com.brave.Browser.nightly",
+    "com.vivaldi.Vivaldi", "com.vivaldi.Vivaldi.snapshot",
 ]
 
-/// 原生支持鼠标侧键前进 / 后退、但没有 AppleScript 后退命令的 App
-private let sideButtonNavigationApps: Set<String> = [
-    "company.thebrowser.Browser", "com.operasoftware.Opera",
-    "org.mozilla.firefox", "org.mozilla.firefoxdeveloperedition", "app.zen-browser.zen",
-    "com.microsoft.VSCode", "com.todesktop.230313mzl4w4u92", // Cursor
+/// 其他浏览器：菜单里找不到后退时，改用模拟侧键（它们都支持侧键后退）
+private let otherBrowsers: Set<String> = [
+    "company.thebrowser.Browser", "company.thebrowser.dia",                          // Arc, Dia
+    "com.operasoftware.Opera", "com.operasoftware.OperaGX",
+    "org.mozilla.firefox", "org.mozilla.firefoxdeveloperedition", "org.mozilla.nightly",
+    "app.zen-browser.zen", "io.gitlab.librewolf-community", "net.waterfox.waterfox", "one.ablaze.floorp",
+    "com.kagi.kagimacOS", "com.duckduckgo.macos.browser",
+    "com.naver.Whale", "ru.yandex.desktop.yandex-browser",
 ]
 
-/// 其他 App（Safari、Finder 等）用 ⌘[ / ⌘]
+/// 编辑器里 ⌘[ 是"减少缩进"，不能点那个菜单项；它们支持侧键后退
+private let sideButtonOnlyApps: Set<String> = [
+    "com.microsoft.VSCode", "com.microsoft.VSCodeInsiders", "com.todesktop.230313mzl4w4u92", // Cursor
+    "com.exafunction.windsurf", "dev.zed.Zed",
+]
+
 private func navigate(forward: Bool) {
-    let app = DispatchQueue.main.sync { NSWorkspace.shared.frontmostApplication?.bundleIdentifier } ?? ""
+    let front = DispatchQueue.main.sync { NSWorkspace.shared.frontmostApplication }
+    let app = front?.bundleIdentifier ?? ""
+    let sideButton = { postClick(button: forward ? 4 : 3, at: CGEvent(source: nil)?.location ?? .zero) }
+
     if appleScriptNavigationApps.contains(app) {
         let command = forward ? "go forward" : "go back"
-        if runAppleScript("tell application id \"\(app)\" to \(command) (active tab of front window)") { return }
-        logger.notice("AppleScript 后退失败（可能未允许控制 \(app, privacy: .public)），改用侧键")
+        if runAppleScript("tell application id \"\(app)\" to \(command) (active tab of front window)") {
+            logger.info("后退方式: AppleScript")
+            return
+        }
+        logger.notice("AppleScript 后退失败（可能未允许控制 \(app, privacy: .public)），改用菜单")
     }
-    if appleScriptNavigationApps.contains(app) || sideButtonNavigationApps.contains(app) {
-        postClick(button: forward ? 4 : 3, at: CGEvent(source: nil)?.location ?? .zero)
+    if sideButtonOnlyApps.contains(app) {
+        logger.info("后退方式: 侧键")
+        sideButton()
+        return
+    }
+    if let pid = front?.processIdentifier, pressMenuItem(pid: pid, cmdChar: forward ? "]" : "[") {
+        logger.info("后退方式: 菜单项")
+        return
+    }
+    if appleScriptNavigationApps.contains(app) || otherBrowsers.contains(app) {
+        logger.info("后退方式: 侧键（菜单里没找到）")
+        sideButton()
     } else {
+        logger.info("后退方式: 快捷键（菜单里没找到）")
         sendKeyCombo(forward ? "cmd+]" : "cmd+[")
     }
+}
+
+// MARK: - 菜单项
+
+/// 找到的菜单项按 App 缓存，避免每次遍历整个菜单栏（书签菜单可能很大）。只在 actionQueue 上访问
+private var menuItemCache: [pid_t: [String: AXUIElement]] = [:]
+
+/// 点击 App 菜单栏里快捷键为 ⌘<cmdChar> 的菜单项。按快捷键找而不是按名字，所以和系统语言无关。
+/// 菜单项是 App 自己执行的，网页拦不住。找到就返回 true（菜单项灰掉时，说明没有可后退的页面，什么都不做）
+private func pressMenuItem(pid: pid_t, cmdChar: String) -> Bool {
+    if let item = menuItemCache[pid]?[cmdChar] {
+        if !isEnabled(item) { return true }
+        if AXUIElementPerformAction(item, kAXPressAction as CFString) == .success { return true }
+        menuItemCache[pid]?[cmdChar] = nil   // 菜单重建过，重新找
+    }
+
+    let axApp = AXUIElementCreateApplication(pid)
+    AXUIElementSetMessagingTimeout(axApp, 0.5)
+    guard let menuBar = axElement(axApp, kAXMenuBarAttribute) else { return false }
+    // 跳过第一个（苹果菜单）
+    for topItem in axChildren(menuBar).dropFirst() {
+        for menu in axChildren(topItem) {
+            for item in axChildren(menu) {
+                guard axValue(item, kAXMenuItemCmdCharAttribute) as? String == cmdChar,
+                      // 0 表示只有 ⌘，没有其他修饰键
+                      (axValue(item, kAXMenuItemCmdModifiersAttribute) as? Int) == 0 else { continue }
+                menuItemCache[pid, default: [:]][cmdChar] = item
+                if isEnabled(item) { AXUIElementPerformAction(item, kAXPressAction as CFString) }
+                return true
+            }
+        }
+    }
+    return false
+}
+
+private func axValue(_ el: AXUIElement, _ attr: String) -> CFTypeRef? {
+    var v: CFTypeRef?
+    return AXUIElementCopyAttributeValue(el, attr as CFString, &v) == .success ? v : nil
+}
+
+private func axElement(_ el: AXUIElement, _ attr: String) -> AXUIElement? {
+    guard let v = axValue(el, attr), CFGetTypeID(v) == AXUIElementGetTypeID() else { return nil }
+    return (v as! AXUIElement)
+}
+
+private func axChildren(_ el: AXUIElement) -> [AXUIElement] {
+    (axValue(el, kAXChildrenAttribute) as? [AXUIElement]) ?? []
+}
+
+private func isEnabled(_ el: AXUIElement) -> Bool {
+    (axValue(el, kAXEnabledAttribute) as? Bool) ?? true
 }
 
 /// 用 osascript 在独立进程里执行，目标 App 卡住时最多等 2 秒，不影响 Strokey 本身。返回是否成功

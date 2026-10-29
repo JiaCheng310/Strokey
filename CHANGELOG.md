@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.4
+
+- Back / forward that pages can't block now works in more browsers. Apps without an AppleScript back command (Safari, Firefox, Arc, Zen, Orion, DuckDuckGo, Opera, Finder…) get their own Back / Forward menu item pressed, found by its ⌘[ / ⌘] shortcut so it works in any system language. No extra permission needed / 网页拦不住的后退、前进支持更多浏览器。没有 AppleScript 后退命令的 App（Safari、Firefox、Arc、Zen、Orion、DuckDuckGo、Opera、Finder 等）改为点击它们自己的「后退 / 前进」菜单项，按 ⌘[ / ⌘] 快捷键查找，和系统语言无关，不需要额外权限
+- More Chromium variants use AppleScript (Chrome for Testing, Edge Canary, Brave Beta / Nightly, Vivaldi Snapshot) / 更多 Chromium 系浏览器版本使用 AppleScript
+- Code editors (VS Code, Cursor, Windsurf, Zed) use the side button, since ⌘[ means "outdent" there / 代码编辑器（VS Code、Cursor、Windsurf、Zed）使用侧键，因为 ⌘[ 在编辑器里是"减少缩进"
+
 ## 1.0.3
 
 - Back / forward can no longer be blocked by web pages. Pages can swallow ⌘[ (code editors such as CodeMirror on alphaXiv) and even cancel the mouse side buttons (PDF viewers). In Chrome, Edge, Brave, Vivaldi and Chromium, Strokey now uses the browser's own back command via AppleScript, same as clicking the toolbar button. macOS asks once for permission to control the browser / 后退、前进不会再被网页拦截。网页能吞掉 ⌘[（如 alphaXiv 上的 CodeMirror 编辑器），甚至取消鼠标侧键（PDF 阅读器）。现在 Chrome、Edge、Brave、Vivaldi、Chromium 通过 AppleScript 调用浏览器自己的后退命令，和点工具栏按钮一样；首次使用时系统会询问是否允许控制浏览器
